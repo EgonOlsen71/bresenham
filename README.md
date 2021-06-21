@@ -41,6 +41,9 @@ The setup is the same as when drawing a line and so is the call to set the first
 
 **Sources and building the project**
 
+The project can build with MOSpeed:  https://github.com/EgonOlsen71/basicv2
+MOSpeed is required to assemble the assembly language parts (albeit some other assembler might work as well with minor modifications) and to compile the BASIC parts. If you don't want to build the project your own, you can just use the pre-built prg-files in the build-directory (see description below).
+
 In the src-directory, you'll find the assembly language sources in *asm* and two BASIC basic example in *basic*. In *build*, you'll find several files:
 
 * c1541.exe - a helpful utility from the VICE project to create a D64 image. The license for VICE applies to this file.
