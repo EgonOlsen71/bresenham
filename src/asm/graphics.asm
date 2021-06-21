@@ -241,9 +241,12 @@ drawline400:
 	sta KP
 	lda #0
 	sta KP+1
-	dec KP
-	bne	dskip4
+	lda KP
+	bne decskip23
 	dec KP+1
+decskip23:
+	dec KP
+
 dloop2:
 dskip4:
 	sec
@@ -504,9 +507,12 @@ dcont6:
 	sta JP
 	lda COORDS+1
 	sta JP+1
-	dec JP
-	bne	dskip19
+	lda JP
+	bne decskip24
 	dec JP+1
+decskip24:
+	dec JP
+		
 dloop7:
 dskip19:
 	sec
