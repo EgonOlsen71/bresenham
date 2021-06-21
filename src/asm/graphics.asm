@@ -1,3 +1,5 @@
+; a small bresenham/graphics package for simple point plotting and line drawing for the C64
+
 *=$c000
 
 MEM=$2000			; graphics memory address
