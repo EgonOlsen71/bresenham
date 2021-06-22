@@ -152,6 +152,14 @@ xok:
 	sbc CALC+1
 	sta DX+1
 	
+	lda DX+1
+	bne contline
+	lda DX
+	ora DY
+	bne contline
+	jmp lineplot	; Just one pixel, then draw it and exit
+	
+contline:	
 	lda COORDS+4
 	cmp COORDS+1
 	bcc skip1
