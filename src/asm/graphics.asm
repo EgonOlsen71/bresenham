@@ -24,6 +24,7 @@ CF=$C4
 	jmp linedraw	; SYS 49167 - draw line with X (low/high) in 780/781 and Y in 782
 	jmp lineclear	; SYS 49170 - clear line with X (low/high) in 780/781 and Y in 782
 	jmp pointclear	; SYS 49173 - clear point with X (low/high) in 780/781 and Y in 782
+	jmp floodfill	; SYS 49176 - fill the surrounding shape with X (low/high) in 780/781 and Y in 782 as a seed
 
 init:
 	; modify this to use some other VIC II bank
@@ -86,6 +87,269 @@ loop2:
 	bne loop2
 	rts
 	
+push:
+	; Push coordinate onto the stack, format is y,xl,xh
+	pha
+	tya
+	ldy #0
+	sta (FE),y
+	iny
+	pla
+	sta (FE),y
+	iny
+	txa
+	sta (FE),y
+	clc
+	lda FE
+	adc #$3
+	sta FE
+	bcc pushskip
+	inc FE+1
+pushskip:
+
+	lda FE+1
+	cmp #$d0
+	beq overflow
+	rts	
+
+overflow:
+	brk
+	
+pop:
+	; pop ccordinates from stack, results in a,x and y
+	ldy #0
+	sec
+	lda FE
+	sbc #$3
+	sta FE
+	bcs popskip
+	dec FE+1
+popskip:
+	lda (FE),y
+	sta TMP
+	iny
+	lda (FE),y
+	pha
+	iny
+	lda (FE),y
+	tax
+	pla
+	ldy TMP
+	rts
+	
+checkstack:
+	; if the stack is empty, y=1 and y=0 otherwise
+	ldy #0
+	lda #<FILLSTACK
+	cmp FE
+	bne exitcheck
+	lda #>FILLSTACK
+	cmp FE+1
+	bne exitcheck
+	ldy #1
+exitcheck:
+	rts
+	
+	
+floodfill:
+	pha
+	lda #<FILLSTACK
+	sta FE
+	lda #>FILLSTACK
+	sta FE+1
+	pla
+	jsr push
+	jmp fillloop
+	
+exitfill:
+	rts
+	
+fillloop:
+	jsr checkstack
+	cpy #0
+	bne exitfill	; exit if stack is empty
+	
+	lda #$1	   		; set plot mode to write
+	sta CF
+	
+	jsr pop
+	
+	; fill to the right...
+	
+	sta COORDS		; store initial value
+	stx COORDS+1
+	sty COORDS+2
+	
+	sta JP			; store runtime value
+	stx JP+1
+	sty KP
+	
+rightpart:
+	lda JP
+	ldx JP+1
+	ldy KP
+	
+	jsr plot		; write pixel
+	inc JP
+	bne fillskip1
+	inc JP+1
+	
+fillskip1:
+	
+	lda #$ff		; set plot mode to read
+	sta CF
+
+	lda JP
+	ldx JP+1
+	ldy KP
+	
+	jsr plot		; read pixel, (>0 or 0) in x
+	lda #$1			; set plot mode to write
+	sta CF
+	
+	cpx #0
+	beq rightpart
+	
+	; fill to the left
+	
+	lda JP			; store xr (= end value, exclusive)
+	sta COORDS+3
+	lda JP+1
+	sta COORDS+4
+	
+	lda COORDS		;restore initial value
+	ldx COORDS+1
+	ldy COORDS+2
+	
+	sta JP			; store runtime value
+	stx JP+1
+	sty KP
+	
+leftpart:
+	lda JP
+	ldx JP+1
+	ldy KP
+	
+	jsr plot		; write pixel
+	lda JP
+	bne fillskip3
+	lda JP+1
+	beq fillskip4
+	dec JP+1
+fillskip3:
+	dec JP
+	
+	lda #$ff		; set plot mode to read
+	sta CF
+
+	lda JP
+	ldx JP+1
+	ldy KP
+	
+	jsr plot		; read pixel, (>0 or 0) in x
+	lda #$1			; set plot mode to write
+	sta CF
+	
+	cpx #0
+	beq leftpart
+	
+	inc JP
+	bne fillskip4
+	inc JP+1
+fillskip4:
+
+	; setup flags for up/down
+	lda #0
+	sta DX			; up?
+	sta DY			; down?
+	
+innerfillloop:
+	ldy KP
+	beq resetup		; already at the top?
+	
+	lda #$ff		; plot mode to read
+	sta CF
+	
+	lda JP
+	ldx JP+1
+	ldy KP
+	dey
+	
+	jsr plot
+	
+	cpx #0
+	bne resetup
+	
+	lda DX			
+	bne	contfill1
+	
+	lda JP
+	ldx JP+1
+	ldy KP
+	dey
+	
+	jsr push
+	lda #1
+	sta DX			; set up=true
+	jmp contfill1
+	
+resetup:
+	lda #0
+	sta DX	
+	
+contfill1:
+	ldy KP
+	cpy #$c7
+	beq resetdown	; already at the bottom?
+	
+	lda #$ff		; plot mode to read
+	sta CF
+	
+	lda JP
+	ldx JP+1
+	ldy KP
+	iny
+	
+	jsr plot
+	
+	cpx #0
+	bne resetdown
+	
+	lda DY			
+	bne	contfill2
+	
+	lda JP
+	ldx JP+1
+	ldy KP
+	iny
+	
+	jsr push
+	lda #1
+	sta DY			; set down=true
+	jmp contfill2
+	
+resetdown:
+	lda #0
+	sta DY	
+	
+contfill2:
+	inc JP
+	bne contfill3
+	inc JP+1
+	
+contfill3:
+	lda JP
+	cmp COORDS+3
+	bne contfill4
+	lda JP+1
+	cmp COORDS+4
+	bne contfill4
+	jmp fillloop
+
+contfill4:
+	jmp innerfillloop	
+			
+		
 lineset:
 	sta COORDS
 	stx COORDS+1
@@ -659,6 +923,7 @@ plot:
 	bcs exit
 	jmp ok
 exit:
+	ldx #1		; flag for the filler to indicate to stop here
 	rts
 ok: 
 	pha
@@ -730,9 +995,16 @@ noov:
 	ldy #0
 	lda CF
 	beq clearpoint
+	bmi readpoint
 	lda (TMP),y
 	ora VALS,x
 	sta (TMP),y
+	rts
+	
+readpoint:
+	lda (TMP),y
+	and VALS,x
+	tax
 	rts
 	
 clearpoint:
@@ -752,6 +1024,9 @@ COORDS
 	
 CALC
 	.byte 0 0 0 0 0 0
+	
+FILLSTACK
+	.byte 0
 	
 
 
