@@ -187,31 +187,35 @@ fillloop:
 	sty KP
 	
 rightpart:
-	lda JP
-	ldx JP+1
-	ldy KP
-	
-	jsr plot		; write pixel
-	inc JP
-	bne fillskip1
-	inc JP+1
-	
-fillskip1:
-	
-	lda #$ff		; set plot mode to read
+	lda #$1			; set plot mode to write
 	sta CF
 
 	lda JP
 	ldx JP+1
 	ldy KP
 	
-	jsr plot		; read pixel, (>0 or 0) in x
-	lda #$1			; set plot mode to write
+	jsr plot		; write pixel
+	lda #$ff		; set plot mode to read
 	sta CF
 	
-	cpx #0
-	beq rightpart
+rightpart2:
+	inc JP
+	bne fillskip1
+	inc JP+1
 	
+fillskip1:
+	lda JP
+	ldx JP+1
+	ldy KP
+	
+	jsr plot		; read pixel, (>0 or 0) in x
+	
+	cpx #0
+	bne	skipright
+	jsr fastplot	; reuse calculations for read to plot the pixel
+	jmp rightpart2
+	
+skipright:
 	; fill to the left
 	
 	lda JP			; store xr (= end value, exclusive)
@@ -228,11 +232,18 @@ fillskip1:
 	sty KP
 	
 leftpart:
+	lda #$1			; set plot mode to write
+	sta CF
+
 	lda JP
 	ldx JP+1
 	ldy KP
 	
 	jsr plot		; write pixel
+	lda #$ff		; set plot mode to read
+	sta CF
+	
+leftpart2:
 	lda JP
 	bne fillskip3
 	lda JP+1
@@ -241,20 +252,17 @@ leftpart:
 fillskip3:
 	dec JP
 	
-	lda #$ff		; set plot mode to read
-	sta CF
-
 	lda JP
 	ldx JP+1
 	ldy KP
 	
 	jsr plot		; read pixel, (>0 or 0) in x
-	lda #$1			; set plot mode to write
-	sta CF
 	
-	cpx #0
-	beq leftpart
+	bne skipleft
+	jsr fastplot	; reuse calculations for read to plot the pixel
+	jmp leftpart2
 	
+skipleft:
 	inc JP
 	bne fillskip4
 	inc JP+1
@@ -314,7 +322,6 @@ contfill1:
 	
 	jsr plot
 	
-	cpx #0
 	bne resetdown
 	
 	lda DY			
@@ -998,14 +1005,20 @@ noov:
 	lda CF
 	beq clearpoint
 	bmi readpoint
+plotint:
 	lda (TMP),y
 	ora VALS,x
 	sta (TMP),y
 	rts
 	
+fastplot:
+	ldx VAR
+	jmp plotint
+	
 readpoint:
 	lda (TMP),y
 	and VALS,x
+	stx VAR			; store x in VAR for reuse in fastplot
 	tax
 	rts
 	
