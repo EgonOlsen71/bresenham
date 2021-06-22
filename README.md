@@ -38,6 +38,10 @@ Line drawing is split into two calls. The first one sets the start of the line, 
 
 The setup is the same as when drawing a line and so is the call to set the first point: SYS 49164. Then setup the second point and call SYS 49170 to clear the line.
 
+**Flood fill**
+
+Poke the seed coordinates into 780/781 (x-low and x-high) and 782 (y), then call SYS 49176 to fill starting from that point. The algorithm uses a stack that extends after the actual the machine language code and up to $D000.
+
 
 **Sources and building the project**
 

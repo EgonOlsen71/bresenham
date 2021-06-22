@@ -5,6 +5,8 @@
 MEM=$2000			; graphics memory address
 COLOR=$0400			; screen memory address (for colors)
 
+STACKHI=$d0			; high byte of the fill stack end
+
 MEM2=MEM-192
 MEMEND=MEM+8000
 TMP=$FB
@@ -108,7 +110,7 @@ push:
 pushskip:
 
 	lda FE+1
-	cmp #$d0
+	cmp #STACKHI
 	beq overflow
 	rts	
 
