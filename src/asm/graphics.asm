@@ -210,8 +210,24 @@ fillskip1:
 	
 	jsr plot		; read pixel, (>0 or 0) in x
 	
-	cpx #0
 	bne	skipright
+	lda VAR+1
+	bne somepixels1
+	lda JP			; The whole byte may be empty
+	and #$7
+	bne somepixels1	; ...but it's not...
+	
+	lda #$ff		; fill the whole byte
+	sta (TMP),y
+	clc
+	lda JP
+	adc #8
+	sta JP
+	bcc fillskip1
+	inc JP+1
+	jmp fillskip1
+					
+somepixels1:	
 	jsr fastplot	; reuse calculations for read to plot the pixel
 	jmp rightpart2
 	
@@ -252,13 +268,32 @@ leftpart2:
 fillskip3:
 	dec JP
 	
+fillskip3_1:
 	lda JP
 	ldx JP+1
 	ldy KP
 	
 	jsr plot		; read pixel, (>0 or 0) in x
-	
 	bne skipleft
+	
+	lda VAR+1
+	bne somepixels2
+	lda JP			; The whole byte may be empty
+	and #$7
+	cmp #$7
+	bne somepixels2	; ...but it's not...
+	
+	lda #$ff		; fill the whole byte
+	sta (TMP),y
+	sec
+	lda JP
+	sbc #8
+	sta JP
+	bcs fillskip3_1
+	dec JP+1
+	jmp fillskip3_1
+					
+somepixels2:	
 	jsr fastplot	; reuse calculations for read to plot the pixel
 	jmp leftpart2
 	
@@ -287,7 +322,6 @@ innerfillloop:
 	
 	jsr plot
 	
-	cpx #0
 	bne resetup
 	
 	lda DX			
@@ -1017,6 +1051,7 @@ fastplot:
 	
 readpoint:
 	lda (TMP),y
+	sta VAR+1		; store actual value for further optimization (block wise fill)
 	and VALS,x
 	stx VAR			; store x in VAR for reuse in fastplot
 	tax
