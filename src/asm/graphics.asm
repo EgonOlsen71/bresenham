@@ -355,7 +355,6 @@ contfill1:
 	iny
 	
 	jsr plot
-	
 	bne resetdown
 	
 	lda DY			
