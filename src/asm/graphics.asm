@@ -991,6 +991,10 @@ ok:
 	rol VAR+1
 	rol VAR
 	rol VAR+1
+	lda VAR
+	sta CALC
+	lda VAR+1
+	sta CALC+1
 	rol VAR
 	rol VAR+1
 	rol VAR
@@ -1003,24 +1007,12 @@ ok:
 	adc VAR+1
 	sta TMP+1
 	
-	tya
-	and #$f8
-	sta VAR
-	lda #0
-	sta VAR+1
-	clc
-	rol VAR
-	rol VAR+1
-	rol VAR
-	rol VAR+1
-	rol VAR
-	rol VAR+1
 	lda TMP
 	clc
-	adc VAR
+	adc CALC
 	sta TMP
 	lda TMP+1
-	adc VAR+1
+	adc CALC+1
 	sta TMP+1
 	
 	tya
