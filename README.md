@@ -1,5 +1,5 @@
 # bresenham
-A line drawing and point plotting routine for the C64 written in 6502-assembly language. The goal of this small project isn't to provide the fastest line drawing routine possible but to create something reasonable fast that can be used from within BASIC without relying on an extension or some interpreter hacks like SYS X,Y,Z.
+A line drawing, point plotting and flood filling routine for the C64's hires graphics mode written in 6502-assembly language. The goal of this small project isn't to provide the fastest line drawing routine possible but to create something reasonable fast that can be used from within BASIC without relying on an extension or some interpreter hacks like SYS X,Y,Z.
 
 The main reason for this is to keep it "compiler friendly", because while some compilers, like MOSpeed, can compile variants of the SYS X,Y,Z hack, the results usually aren't as fast as they could be. So this routine relies on the required values simply being poked into memory at 780-782 before calling the actual function via SYS.
 
