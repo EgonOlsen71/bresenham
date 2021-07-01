@@ -54,6 +54,7 @@ In the src-directory, you'll find the assembly language sources in *asm* and two
 * build.cmd - a build script for Windows to assemble and compile the source files and create a D64 image from them
 * graphics_AD.d64 - the D64 image containing the routines and the examples
 * graphics.prg - the graphics rountines
-* ++example.prg - a compiled version of the first example
-* ++example2.prg - a compiled version of the second example
+* ++example.prg - a compiled version of the first example (some funny lines)
+* ++example2.prg - a compiled version of the second example (a 3d view of a function)
+* ++example3.prg - a compiled version of the third example (a flood fill example)
 
