@@ -40,7 +40,7 @@ The setup is the same as when drawing a line and so is the call to set the first
 
 **Flood fill**
 
-Poke the seed coordinates into 780/781 (x-low and x-high) and 782 (y), then call SYS 49176 to fill starting from that point. The algorithm uses a stack that extends after the actual the machine language code and up to $D000.
+Poke the seed coordinates into 780/781 (x-low and x-high) and 782 (y), then call SYS 49176 to fill starting from that point. The algorithm uses a stack that extends after the actual machine language code and up to $D000, if required.
 
 
 **Sources and building the project**
