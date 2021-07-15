@@ -57,4 +57,5 @@ In the src-directory, you'll find the assembly language sources in *asm* and two
 * ++example.prg - a compiled version of the first example (some funny lines)
 * ++example2.prg - a compiled version of the second example (a 3d view of a function)
 * ++example3.prg - a compiled version of the third example (a flood fill example)
+• ++butterfly.prg - a compiled version of the butterfly example (lines and flood fill)
 
